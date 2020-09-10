@@ -1,4 +1,4 @@
-# Praktikum Project15 v1.0.1
+# Praktikum Project15 v1.0.2
 Подготовка и деплой бэкенда.
 ## Пакеты, задействованные в проекте:
 - Node.js
