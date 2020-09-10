@@ -1,1 +1,0 @@
-module.exports.devKey = 'f740b57366cef26665c42359c1c2ca1ce5081cdf8b2f678d002fb5f259e07890';
