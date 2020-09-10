@@ -1,15 +1,26 @@
+const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+
+const UserNotFoundError = require('../errors/UserNotFoundError');
+const NotCorrectInputError = require('../errors/NotCorrectInputError');
+const InvalidEmailError = require('../errors/InvalidEmailError');
+const BadPasswordError = require('../errors/BadPasswordError');
+const InvalidInputError = require('../errors/InvalidInputError');
+
+const { devKey } = require('../configs/config.js');
+
+const { NODE_ENV, JWT_SECRET } = process.env;
+
 const {
-  createObject,
-  loginUser,
   getAllObject,
   getObjectById,
   objectIdValid,
-  passwordRegexp,
 } = require('../helpers/helpers');
 
-function createUser(req, res) {
+function createUser(req, res, next) {
+  const passwordRegexp = /[\u0023-\u0126]+/;
   const {
     name,
     about,
@@ -20,37 +31,69 @@ function createUser(req, res) {
   if (password && password.match(passwordRegexp)) {
     bcrypt.hash(password, 10)
       .then((hash) => {
-        createObject(User.create({
+        User.create({
           name,
           about,
           avatar,
           password: hash,
           email,
-        }), req, res, 'user');
+        })
+          .then((respObj) => {
+            res.send({
+              name: respObj.name,
+              about: respObj.about,
+              avatar: respObj.avatar,
+              email: respObj.email,
+              _id: respObj._id,
+            });
+          })
+          .catch((err) => {
+            if (err instanceof mongoose.Error.ValidationError) {
+              next(new NotCorrectInputError());
+            } else if (err.code === 11000) {
+              next(new InvalidEmailError());
+            }
+          });
       });
   } else {
-    res.status(400).send({ message: 'Введите пароль длиной не менее 8 символов, состоящий из латинских букв, цифр и специальных символов' });
+    next(new BadPasswordError());
   }
 }
 
-function login(req, res) {
+function login(req, res, next) {
   const { email, password } = req.body;
   if (typeof email === 'string' && typeof password === 'string') {
-    loginUser(User.findByCredentials(email, password), req, res);
-  } else res.status(400).send({ message: 'Введите логин и пароль' });
+    User.findByCredentials(email, password)
+      .then((user) => {
+        const token = jwt.sign(
+          { _id: user._id },
+          NODE_ENV === 'production' ? JWT_SECRET : devKey,
+          { expiresIn: '7d' },
+        );
+        res.cookie('jwt', token, {
+          maxAge: 3600000 * 24 * 7,
+          httpOnly: true,
+          sameSite: true,
+        })
+          .end();
+      })
+      .catch(() => {
+        next(new InvalidInputError());
+      });
+  }
 }
 
 function getAllUsers(req, res) {
   getAllObject(User.find({}), req, res);
 }
 
-function getSingleUser(req, res) {
+function getSingleUser(req, res, next) {
   try {
     const userId = req.params.id;
     objectIdValid(userId);
-    getObjectById(User.findById(userId), req, res);
+    getObjectById(User.findById(userId), req, res, next);
   } catch (err) {
-    res.status(404).send({ message: 'Такого пользователя не существует' });
+    next(new UserNotFoundError());
   }
 }
 

@@ -1,52 +1,54 @@
+const mongoose = require('mongoose');
 const Card = require('../models/card');
+
+const CardNotFoundError = require('../errors/CardNotFoundError');
+const NotDeleteCardError = require('../errors/NotDeleteCardError');
+const NotCorrectInputError = require('../errors/NotCorrectInputError');
+
 const {
-  createObject,
   getAllObject,
-  getObjectById,
-  existUser,
   objectIdValid,
 } = require('../helpers/helpers');
 
-function getAllCards(req, res) {
-  getAllObject(Card.find({}), req, res);
+function getAllCards(req, res, next) {
+  getAllObject(Card.find({}), req, res, next);
 }
 
-function createCard(req, res) {
+function createCard(req, res, next) {
   try {
     const owner = req.user._id;
     objectIdValid(owner);
     const { name, link } = req.body;
-    existUser(owner)
-      .then((checkResult) => {
-        if (checkResult) {
-          createObject(Card.create({ name, link, owner }), req, res, 'card');
-        } else {
-          throw new Error();
+    Card.create({ name, link, owner })
+      .then((respObj) => res.send(respObj))
+      .catch((err) => {
+        if (err instanceof mongoose.Error.ValidationError) {
+          next(new NotCorrectInputError());
         }
-      })
-      .catch(() => res.status(404).send({ message: 'Такого пользователя не cуществует' }));
+      });
   } catch (err) {
-    res.status(400).send({ message: 'Ошибка в идентификаторе карточки' });
+    next(err);
   }
 }
 
-function deleteCard(req, res) {
+function deleteCard(req, res, next) {
   try {
     const userId = req.user._id;
     const { cardId } = req.params;
-    objectIdValid(userId);
     objectIdValid(cardId);
-    existUser(userId)
-      .then((checkResult) => {
-        if (checkResult) {
-          getObjectById(Card.findByIdAndRemove({ _id: cardId }), req, res, userId);
+    Card.findById(cardId)
+      .orFail(new CardNotFoundError())
+      .then((respObj) => {
+        if (respObj.owner.equals(userId)) {
+          respObj.deleteOne()
+            .then((deletedObj) => res.send(deletedObj));
         } else {
-          throw new Error();
+          next(new NotDeleteCardError());
         }
       })
-      .catch(() => res.status(404).send({ message: 'Карточка не существует' }));
+      .catch(next);
   } catch (err) {
-    res.status(404).send({ message: 'Карточка не существует' });
+    next(err);
   }
 }
 
