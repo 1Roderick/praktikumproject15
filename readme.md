@@ -13,7 +13,7 @@
 ## Как воспользоваться проектом
 ### Ссылки на домен:
 http://mestoprak.ml/
-http://www.mestoprak.m;/
+http://www.mestoprak.ml/
 http://api.mestoprak.ml/
 http://www.api.mestoprak.ml/
 ### Команды для Postman
