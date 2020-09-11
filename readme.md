@@ -12,10 +12,10 @@
 и др.
 ## Как воспользоваться проектом
 ### Ссылки на домен:
-http://mestoprak.tk/
-http://www.mestoprak.tk/
-http://api.mestoprak.tk/
-http://www.api.mestoprak.tk/
+-http://mestoprak.tk/
+-http://www.mestoprak.tk/
+-http://api.mestoprak.tk/
+-http://www.api.mestoprak.tk/
 ### Команды для Postman
 - **GET/users** возвращает всех пользователей из базы
 - **GET/users/:userId** возвращает конкретного пользователя
