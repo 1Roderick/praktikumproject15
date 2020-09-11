@@ -5,7 +5,6 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const { celebrate, Joi } = require('celebrate');
-const { errors } = require('celebrate');
 
 const { createUser, login } = require('./controllers/users.js');
 const users = require('./routes/users.js');
@@ -33,7 +32,7 @@ const limiter = expressRateLimit({
 app.use(limiter);
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.get(`/crash-test`, () => {
+app.get('/crash-test', () => {
   setTimeout(() => {
     throw new Error('Сервер сейчас упадёт');
   }, 0);
@@ -55,8 +54,8 @@ app.post('/signup', celebrate({
   }),
 }), createUser);
 app.use(auth);
-app.use(`/users`, users);
-app.use(`/cards`, cards);
+app.use('/users', users);
+app.use('/cards', cards);
 app.use(errorLogger);
 app.use((req, res, next) => next(new NotFoundError()));
 app.use((err, req, res, next) => {

@@ -1,9 +1,5 @@
 const mongoose = require('mongoose');
-const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const { devKey } = require('../configs/config.js');
-
-const { NODE_ENV, JWT_SECRET } = process.env;
 
 const UserNotFoundError = require('../errors/UserNotFoundError');
 
