@@ -1,7 +1,9 @@
 const mongoose = require('mongoose');
+const validator = require('validator/lib/isURL');
 const User = require('../models/user');
 
 const UserNotFoundError = require('../errors/UserNotFoundError');
+const BadLinkError = require('../errors/BadLinkError');
 
 function getAllObject(promise, req, res, next) {
   promise
@@ -29,9 +31,16 @@ function objectIdValid(id) {
   }
 }
 
+function urlValidator(link) {
+  if (!validator(link)) {
+    throw new BadLinkError();
+  } else return link;
+}
+
 module.exports = {
   getAllObject,
   getObjectById,
   existUser,
   objectIdValid,
+  urlValidator,
 };

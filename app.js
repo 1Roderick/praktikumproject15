@@ -9,6 +9,7 @@ const { celebrate, Joi } = require('celebrate');
 const { createUser, login } = require('./controllers/users.js');
 const users = require('./routes/users.js');
 const cards = require('./routes/cards.js');
+const { urlValidator } = require('./helpers/helpers');
 const auth = require('./middlewares/auth');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 
@@ -48,7 +49,7 @@ app.post('/signup', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
     about: Joi.string().required().min(2).max(30),
-    avatar: Joi.string().required().regex(/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/),
+    avatar: Joi.string().required().custom(urlValidator),
     email: Joi.string().required().email(),
     password: Joi.string().required().min(8),
   }),
