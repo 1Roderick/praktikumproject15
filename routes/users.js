@@ -1,8 +1,12 @@
 const routerUsers = require('express').Router();
-const { createUser, getAllUsers, getSingleUser } = require('../controllers/users');
+const { celebrate, Joi } = require('celebrate');
+const { getAllUsers, getSingleUser } = require('../controllers/users');
 
 routerUsers.get('/', getAllUsers);
-routerUsers.get('/:id', getSingleUser);
-routerUsers.post('/', createUser);
+routerUsers.get('/:id', celebrate({
+  params: Joi.object().keys({
+    id: Joi.string().hex(),
+  }),
+}), getSingleUser);
 
 module.exports = routerUsers;
